@@ -3,9 +3,29 @@
 	import 'highlight.js/styles/atom-one-dark.css';
 
 	let code = $state('');
-	let highlighted = $derived(hljs.highlight(code, { language: 'python' }));
+	let highlighted = $derived(hljs.highlight(code, { language: 'python', ignoreIllegals: false }));
 
-	// TODO: console, scrolling
+	let syntaxTrailingNewLinesCorrection = $state('');
+
+	// ! Horrible workarounds
+	// ! HighlightJs removes trailing newLines
+	// ! Fix the html/css or implement custom highligher idk
+
+	$effect(() => {
+		let count = 0;
+
+		for (let i = code.length - 1; i > 0; i--) {
+			if (code[i] === '\n') {
+				count++;
+			} else {
+				break;
+			}
+		}
+
+		syntaxTrailingNewLinesCorrection = '\n'.repeat(count);
+	});
+
+	let codeArea: HTMLDivElement;
 
 	function handleOnKeyDown(e: KeyboardEvent) {
 		if (e.key === 'Tab') {
@@ -65,6 +85,12 @@
 
 		source.selectionStart = source.selectionEnd = start + 1 + tabCount;
 	}
+
+	function applyScroll(e: Event) {
+		const target = e.target as HTMLElement;
+
+		codeArea.scrollTop = target.scrollTop;
+	}
 </script>
 
 <div class="absolute top-0 left-0 flex h-full w-full gap-8 p-16">
@@ -74,15 +100,18 @@
 			spellcheck="false"
 			placeholder="Write your code here..."
 			bind:value={code}
+			onscroll={applyScroll}
 			onkeydown={handleOnKeyDown}
 		></textarea>
 
-		<div class="code-area whitespace-pre-wrap text-white select-none">
+		<div class="code-area whitespace-pre-wrap text-white select-none" bind:this={codeArea}>
 			{@html highlighted.value}
+
+			<span>{syntaxTrailingNewLinesCorrection}</span>
 		</div>
 
 		<div
-			class="absolute top-0 right-0 rounded-tr-xl rounded-bl-xl bg-slate-700 px-4 py-2 text-xs text-slate-400 select-none"
+			class="absolute top-0 right-0 rounded-tr-xl rounded-bl-xl border-b-2 border-l-2 border-gray-500 bg-slate-700 px-4 py-2 text-xs font-bold text-slate-400 select-none"
 		>
 			Python
 		</div>
@@ -102,12 +131,16 @@
 <style lang="postcss">
 	@reference "tailwindcss";
 
+	.code-area::-webkit-scrollbar {
+		display: none;
+	}
+
 	.container {
 		@apply h-full rounded-xl border-2 border-gray-500 bg-gray-800 shadow-2xl;
 	}
 
 	.code-area {
-		@apply absolute top-0 left-0 h-full w-full rounded-xl p-5 text-2xl;
+		@apply absolute top-0 left-0 h-full w-full overflow-y-scroll rounded-xl p-5 text-2xl;
 	}
 
 	:global(body) {
