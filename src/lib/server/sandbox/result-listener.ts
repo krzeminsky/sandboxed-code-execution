@@ -1,7 +1,7 @@
 export class ResultListener {
-    #subscribers = new Map<string, (arg: string) => void>();
+    #subscribers = new Map<string, (arg: any) => void>();
 
-    resolve(uuid: string, result: string) {
+    resolve(uuid: string, result: any) {
         const sub = this.#subscribers.get(uuid);
 
         if (!sub) {
@@ -13,7 +13,7 @@ export class ResultListener {
     }
 
     result(uuid: string, timeout: Promise<any>) {
-        const { promise, resolve, reject } = Promise.withResolvers<string>();
+        const { promise, resolve, reject } = Promise.withResolvers<any>();
 
         this.#subscribers.set(uuid, resolve);
 

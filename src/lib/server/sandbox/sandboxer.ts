@@ -38,13 +38,11 @@ export class Sandboxer {
 
         const result = await resultPromise;
 
-        return await this.#judge(result, problem.answer);
+        return this.#judge(result, problem.answer);
     }
 
-    async #judge(resultJson: string, problemAnswer: Problem["answer"]) {
-        const parsed = JSON.parse(resultJson) as { result: any };
-
-        const resultType = typeof parsed.result;
+    #judge(result: any, problemAnswer: Problem["answer"]) {
+        const resultType = typeof result;
         const expectedType = typeof problemAnswer.content;
 
         if (resultType !== expectedType) {
@@ -53,17 +51,17 @@ export class Sandboxer {
 
         const constructVerdict = (v: boolean) => ({
             verdict: v,
-            receivedOutput: parsed.result,
+            receivedOutput: result,
             expectedOutput: problemAnswer.content
         });
 
         if (Array.isArray(problemAnswer.content)) {
-            if (!Array.isArray(parsed.result)) {
+            if (!Array.isArray(result)) {
                 throw new Error(`Expected an array but received an object`);
             }
 
             const answerArr = problemAnswer.content as any[];
-            const resultArr = parsed.result as any[];
+            const resultArr = result as any[];
 
             if (answerArr.length !== resultArr.length) {
                 return constructVerdict(false);
@@ -80,7 +78,7 @@ export class Sandboxer {
             return constructVerdict(true);
         }
 
-        return constructVerdict(parsed.result === problemAnswer.content);
+        return constructVerdict(result === problemAnswer.content);
     }
 
     async #runContainer(uuid: string, data: string, solution: string, timeout: Promise<any>) {
@@ -102,6 +100,16 @@ export class Sandboxer {
 
                 if (alive) {
                     container.kill();
+                }
+            })
+
+            container.stderr.on('data', (d: Buffer) => {
+                const output = d.toString();
+
+                for (let i = output.length - 2; i >= 0; i--) {
+                    if (output[i] == "\n") {
+                        return reject(output.slice(i + 1, output.length - 1))
+                    }
                 }
             })
 
