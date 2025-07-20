@@ -1,26 +1,58 @@
+import { RESULT_TIMEOUT } from "$env/static/private";
+import { v7 } from "uuid";
+
 export class ResultListener {
-    #subscribers = new Map<string, (arg: any) => void>();
+    #subscribers = new Set<string>();
+    #results = new Map<string, any>();
+    #clients = new Map<string, (arg: any) => void>();
 
-    resolve(uuid: string, result: any) {
-        const sub = this.#subscribers.get(uuid);
+    subscribe() {
+        const uuid = v7();
 
-        if (!sub) {
-            throw new Error("Uuid timed out");
-        }
+        this.#subscribers.add(uuid);
 
-        sub(result);
-        this.#subscribers.delete(uuid);
+        return uuid;
     }
 
-    result(uuid: string, timeout: Promise<any>) {
-        const { promise, resolve, reject } = Promise.withResolvers<any>();
+    unsubscribe(uuid: string) {
+        this.#subscribers.delete(uuid);
+        this.#results.delete(uuid);
+    }
 
-        this.#subscribers.set(uuid, resolve);
+    addResult(uuid: string, result: any) {
+        if (!this.#subscribers.has(uuid)) {
+            throw new Error("Uuid not found");
+        }
 
-        timeout.then(() => {
-            reject("Timed out");
-            this.#subscribers.delete(uuid);
-        })
+        const client = this.#clients.get(uuid);
+
+        if (client) {
+            return client(result);
+        }
+
+        this.#results.set(uuid, result);
+    }
+
+    awaitResult(uuid: string) {
+        const promise = new Promise<any>((resolve, reject) => {
+            const result = this.#results.get(uuid);
+
+            if (result) {
+                this.#results.delete(uuid);
+
+                return resolve(result);
+            }
+
+            this.#clients.set(uuid, resolve);
+
+            setTimeout(() => {
+                reject("Result client timed out");
+            }, Number(RESULT_TIMEOUT));
+        });
+
+        promise.finally(() => {
+            this.#clients.delete(uuid);
+        });
 
         return promise;
     }
