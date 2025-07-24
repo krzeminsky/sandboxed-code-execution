@@ -17,7 +17,7 @@ export class UserDirectory {
     static async create(uuid: string, data: string, solution: string) {
         const dir = new UserDirectory(uuid);
 
-        await fs.mkdir(dir.#tmpDir);
+        await fs.mkdir(dir.#tmpDir, { recursive: true });
         await fs.writeFile(`${dir.#tmpDir}/data.txt`, data);
         await fs.writeFile(`${dir.#tmpDir}/user_solution.py`, solution);
 
@@ -27,7 +27,7 @@ export class UserDirectory {
     }
     
     async dispose() {
-        if (this.#initialized) {
+        if (!this.#initialized) {
             throw new Error("User directory is not initialized. Create UserDirectory with create() static function.")
         }
 

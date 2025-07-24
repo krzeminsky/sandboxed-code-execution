@@ -17,6 +17,7 @@ export class ResultListener {
     unsubscribe(uuid: string) {
         this.#subscribers.delete(uuid);
         this.#results.delete(uuid);
+        this.#clients.delete(uuid);
     }
 
     addResult(uuid: string, result: any) {
@@ -48,10 +49,6 @@ export class ResultListener {
             setTimeout(() => {
                 reject("Result client timed out");
             }, Number(RESULT_TIMEOUT));
-        });
-
-        promise.finally(() => {
-            this.#clients.delete(uuid);
         });
 
         return promise;

@@ -12,7 +12,7 @@ export const POST = async ({ request }) => {
     const { uuid, content } = parseResult.data;
 
     try {
-        listener.resolve(uuid, content);
+        listener.addResult(uuid, content);
     } catch { 
         // DEV ONLY DELETE LATER
         console.log(`Container with uuid: ${uuid} tried to resolve awaited result but failed`)

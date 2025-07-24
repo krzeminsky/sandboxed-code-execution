@@ -90,7 +90,7 @@ export class Sandboxer {
         return new Promise<void>((resolve, reject) => {
             const container = spawn(
                 "docker",
-                `run --memory=${CODE_MEMORY_LIMIT} --read-only --rm -v ${dir.tmpDir}:/mnt -e UUID=${uuid} -e API_URL=${API_URL} --network=host --name ${uuid} ${CONTAINER_NAME}`.split(" ")
+                `run --memory=${CODE_MEMORY_LIMIT} --read-only --rm -v ${dir.tmpDir}:/mnt -e UUID=${uuid} -e API_URL=${API_URL} --name ${uuid} ${CONTAINER_NAME}`.split(" ")
             )
 
             container.stderr.on('data', (d: Buffer) => {
@@ -110,7 +110,7 @@ export class Sandboxer {
                 }
             }, Number(CODE_TIMEOUT));
 
-            container.on('close', () => {
+            container.on('exit', () => {
                 resolve();
             });
         });
