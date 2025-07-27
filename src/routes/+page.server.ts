@@ -56,7 +56,7 @@ export const actions = {
             where: eq(usersTable.username, username)
         });
 
-        if (!user || await bcrypt.compare(password, user.password)) {
+        if (!user || !await bcrypt.compare(password, user.password)) {
             return error(400, "Username and password do not match");
         }
 

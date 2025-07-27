@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import * as p from "drizzle-orm/pg-core";
 
 export const usersTable = p.pgTable('Users', {
@@ -24,9 +25,31 @@ export const problemsTable = p.pgTable('Problems', {
 
 export const userSolutions = p.pgTable('UserSolutions', {
     id: p.integer().primaryKey().generatedAlwaysAsIdentity(),
-    userId: p.integer().references(() => usersTable.id),
-    problemId: p.integer().references(() => problemsTable.id),
+    username: p.varchar().references(() => usersTable.username).notNull(),
+    problemId: p.integer().references(() => problemsTable.id).notNull(),
 
     solution: p.text().notNull(),
     solved: p.boolean().notNull()
 });
+
+
+
+export const userRelations = relations(usersTable, ({ many }) => ({
+    solutions: many(userSolutions)
+}))
+
+export const solutionRelations = relations(userSolutions, ({ one }) => ({
+    user: one(usersTable, {
+        fields: [userSolutions.username],
+        references: [usersTable.username]
+    }),
+
+    problem: one(problemsTable, {
+        fields: [userSolutions.problemId],
+        references: [problemsTable.id]
+    })
+}))
+
+export const problemRelations = relations(problemsTable, ({ many }) => ({
+    solutions: many(userSolutions)
+}))
