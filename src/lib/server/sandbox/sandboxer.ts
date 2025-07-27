@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import type { ResultListener } from "./result-listener";
 import { problemsTable } from "$lib/server/database/schema";
 import { API_URL, CODE_MEMORY_LIMIT, CODE_TIMEOUT, CONTAINER_NAME } from "$env/static/private";
-import { spawn } from "child_process";
+import { exec, spawn } from "child_process";
 import { UserDirectory } from "./user-directory";
 import type { Problem } from "$lib/server/database/schema-types";
 
@@ -105,7 +105,7 @@ export class Sandboxer {
 
             setTimeout(() => {
                 if (!container.killed) {
-                    container.kill();
+                    exec(`docker kill ${uuid}`);
                     reject("Container timed out");
                 }
             }, Number(CODE_TIMEOUT));

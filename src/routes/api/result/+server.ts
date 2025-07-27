@@ -18,8 +18,5 @@ export const POST = async ({ request }) => {
         console.log(`Container with uuid: ${uuid} tried to resolve awaited result but failed`)
     }
 
-    // ? Sending feedback information back to the container is pointless as it doesn't need to process anything more.
-    // ? If the request wasn't made by a container we can still ignore the feedback as this person shouldn't have made the request
-
     return new Response();
 }

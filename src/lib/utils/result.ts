@@ -1,1 +1,0 @@
-export type Result = { success: true, data: any } | { success: false, message: string }
