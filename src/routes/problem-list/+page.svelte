@@ -10,7 +10,7 @@
         </a>
     </h1>
     
-    <div class="flex-1 flex flex-col text-gray-50 w-full p-4">
+    <div class="flex-1 flex flex-col text-gray-50 w-full p-4" data-sveltekit-preload-data="off">
         {#each data.result as p}
         <a href="/problem-list/{p.id}" class="w-full bg-gray-800 p-4 border-2 border-gray-700 rounded-md">
             <span>{p.id}.</span>
