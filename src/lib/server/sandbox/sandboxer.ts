@@ -93,12 +93,16 @@ export class Sandboxer {
                 `run --memory=${CODE_MEMORY_LIMIT} --read-only --rm -v ${dir.tmpDir}:/mnt -e UUID=${uuid} -e API_URL=${API_URL} --name ${uuid} ${CONTAINER_NAME}`.split(" ")
             )
 
+            container.stderr.on('end', () => {
+                console.log('err end')
+            })
+
             container.stderr.on('data', (d: Buffer) => {
                 const output = d.toString();
 
                 for (let i = output.length - 2; i >= 0; i--) {
                     if (output[i] == "\n") {
-                        reject(output.slice(i + 1, output.length - 1))
+                        reject(new Error(output.slice(i + 1, output.length - 1)))
                     }
                 }
             });
@@ -106,7 +110,7 @@ export class Sandboxer {
             setTimeout(() => {
                 if (!container.killed) {
                     exec(`docker kill ${uuid}`);
-                    reject("Container timed out");
+                    reject(new Error("Container timed out"));
                 }
             }, Number(CODE_TIMEOUT));
 

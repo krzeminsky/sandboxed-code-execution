@@ -17,7 +17,6 @@ export const POST = async ({ request }) => {
         return new Response(JSON.stringify(verdict));
     } catch (caughtError) {
         const errorCast = caughtError as Error;
-        console.log(caughtError);
 
         return error(400, errorCast.message);
     }

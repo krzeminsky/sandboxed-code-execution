@@ -1,10 +1,15 @@
 <script lang="ts">
+	import type { Verdict } from '$lib/types.js';
+
     const { data } = $props();
 
     const problem = data.problem;
 
     const tabs = ["Solution", "data.txt"];
     let selectedTab = $state(tabs[0]);
+
+    let verdict = $state<string|null>(null);
+    let awaitingVerdict = $state(false);
 
     function correctTextArea(e: KeyboardEvent) {
         const source = e.target as HTMLTextAreaElement;
@@ -19,15 +24,66 @@
 
             source.selectionStart = source.selectionEnd = start + 1;
         } else if (e.key === "Enter") {
-            
+            e.preventDefault();
+
+            const start = source.selectionStart;
+            const end = source.selectionEnd;
+
+            let tabCount = 0;
+
+            for (let i = start; i >= 0; i--) {
+                const val = source.value[i];
+
+                if (val === "\n") break;
+                else if (val === "\t") tabCount++;
+            }
+
+            const insert = "\t".repeat(tabCount);
+
+            source.value = source.value.substring(0, start) + "\n" + insert + source.value.substring(end);
         }
+    }
+
+    async function getVerdict() {
+        verdict = null;
+        awaitingVerdict = true;
+
+        const res = await fetch("/api/judge", {
+            method: "POST",
+            body: JSON.stringify({
+                problemId: problem.id,
+                solution: problem.solution.solution
+            })
+        });
+
+        verdict = await res.text();
+
+        awaitingVerdict = false;
     }
 </script>
 
-<div class="absolute top-0 left-0 w-full h-full flex p-8">
-    <div class="text-white w-xl">
-        <h1 class="text-4xl py-4">{problem.id}. {problem.name}</h1>
-        <p>{problem.description}</p>
+<div class="absolute top-0 left-0 w-full h-full flex gap-4 p-12">
+    <div class="text-white w-xl flex flex-col gap-4">
+        <div class="flex-1">
+            <h1 class="text-4xl py-4">{problem.id}. {problem.name}</h1>
+            <p>{problem.description}</p>
+        </div>
+
+        <div class="w-full flex flex-col gap-4">
+            {#if verdict}
+            <div class="h-40 bg-gray-950 shadow-xl border-2 border-gray-700 rounded-xl text-white">
+                {verdict}
+            </div>
+            {/if}
+
+            <button class="bg-blue-700 py-4 px-4 rounded-md shadow-xl mb-1.5 cursor-pointer disabled:opacity-50 transition-opacity" disabled={awaitingVerdict} onclick={getVerdict}>
+                {#if awaitingVerdict}
+                Judging...
+                {:else}
+                <img src="/play.svg" alt="Run code" class="h-6 mx-auto" />
+                {/if}
+            </button>
+        </div>
     </div>
 
     <div class="flex-1 flex flex-col">

@@ -47,7 +47,7 @@ export class ResultListener {
             this.#clients.set(uuid, resolve);
 
             setTimeout(() => {
-                reject("Result client timed out");
+                reject(new Error("Result client timed out"));
             }, Number(RESULT_TIMEOUT));
         });
 
