@@ -72,7 +72,7 @@
         <div class="w-full flex flex-col gap-4">
             {#if verdict}
             <div class="h-40 bg-gray-950 shadow-xl border-2 border-gray-700 rounded-xl text-white">
-                {verdict}
+                {JSON.stringify(JSON.parse(verdict), null, 2)}
             </div>
             {/if}
 
