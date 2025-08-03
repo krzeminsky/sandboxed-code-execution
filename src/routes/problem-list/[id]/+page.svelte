@@ -101,7 +101,7 @@
 
         <div class="w-full flex flex-col gap-4">
             {#if verdict}
-            <div class="h-40 bg-gray-950 shadow-xl border-2 border-gray-700 rounded-xl text-white">
+            <div class="h-40 bg-gray-950 shadow-xl border-2 border-gray-700 rounded-xl text-white overflow-hidden">
                 {JSON.stringify(JSON.parse(verdict), null, 2)}
             </div>
             {/if}
@@ -125,18 +125,19 @@
             {/each}
         </div>
 
-        <div class="relative bg-gray-950 flex-1 rounded-xl rounded-tl-none shadow-xl border-2 border-gray-700 text-white">
+        <div class="relative bg-gray-950 flex-1 flex rounded-xl rounded-tl-none shadow-xl border-2 border-gray-700 text-white overflow-y-auto">
             {#if selectedTab === "Solution"}
             <textarea 
-                class="relative w-full h-full resize-none bg-transparent border-none rounded-xl rounded-tl-none transition-all outline-transparent p-4" 
+                class="relative flex-1 resize-none bg-transparent border-none rounded-xl rounded-tl-none transition-all outline-transparent p-4 z-10" 
                 bind:value={clientSolution}
+                spellcheck="false"
                 onkeydown={correctTextArea}
                 placeholder="Write your code here..."
             ></textarea>
 
             {#if unsavedChanges}
             <div class="
-                absolute bottom-0 left-1/2 -translate-x-1/2 bg-blue-700 px-4 py-2 text-sm rounded-t-xl min-w-sm text-center
+                absolute bottom-0 left-1/2 -translate-x-1/2 bg-blue-700 px-4 py-2 text-sm rounded-t-xl min-w-sm text-center z-20
                 {awaitingSave? 'opacity-50' : ''} transition-opacity
             ">
                 {#if !awaitingSave}

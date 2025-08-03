@@ -25,8 +25,16 @@ export const problemsTable = p.pgTable('Problems', {
 
 export const userSolutions = p.pgTable('UserSolutions', {
     id: p.integer().primaryKey().generatedAlwaysAsIdentity(),
-    username: p.varchar().references(() => usersTable.username).notNull(),
-    problemId: p.integer().references(() => problemsTable.id).notNull(),
+    
+    username: p.varchar().references(() => usersTable.username, {
+        onDelete: "cascade",
+        onUpdate: "cascade"
+    }).notNull(),
+
+    problemId: p.integer().references(() => problemsTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade"
+    }).notNull(),
 
     solution: p.text().notNull(),
     solved: p.boolean().notNull()
