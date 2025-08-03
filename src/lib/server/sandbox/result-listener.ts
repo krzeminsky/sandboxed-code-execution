@@ -1,10 +1,11 @@
 import { RESULT_TIMEOUT } from "$env/static/private";
 import { v7 } from "uuid";
+import type { ContainerResult } from "../validation/result-schema";
 
 export class ResultListener {
     #subscribers = new Set<string>();
-    #results = new Map<string, any>();
-    #clients = new Map<string, (arg: any) => void>();
+    #results = new Map<string, ContainerResult>();
+    #clients = new Map<string, (arg: ContainerResult) => void>();
 
     subscribe() {
         const uuid = v7();
@@ -20,7 +21,7 @@ export class ResultListener {
         this.#clients.delete(uuid);
     }
 
-    addResult(uuid: string, result: any) {
+    addResult(uuid: string, result: ContainerResult) {
         if (!this.#subscribers.has(uuid)) {
             throw new Error("Uuid not found");
         }
@@ -35,7 +36,7 @@ export class ResultListener {
     }
 
     awaitResult(uuid: string) {
-        const promise = new Promise<any>((resolve, reject) => {
+        const promise = new Promise<ContainerResult>((resolve, reject) => {
             const result = this.#results.get(uuid);
 
             if (result) {

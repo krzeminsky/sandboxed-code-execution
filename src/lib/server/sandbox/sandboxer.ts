@@ -36,7 +36,11 @@ export class Sandboxer {
 
             const result = await this.#listener.awaitResult(uuid);
 
-            return this.#judge(result, problem.answer);
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+
+            return this.#judge(result.data, problem.answer);
 
         } finally {
 
@@ -90,32 +94,21 @@ export class Sandboxer {
         return new Promise<void>((resolve, reject) => {
             const container = spawn(
                 "docker",
-                `run --memory=${CODE_MEMORY_LIMIT} --read-only --rm -v ${dir.tmpDir}:/mnt -e UUID=${uuid} -e API_URL=${API_URL} --name ${uuid} ${CONTAINER_NAME}`.split(" ")
+                `run --rm --read-only -v ${dir.tmpDir}:/mnt -e PYTHONBUFFERED=1 -e UUID=${uuid} -e API_URL=${API_URL} --name ${uuid} ${CONTAINER_NAME}`.split(" ")
             )
-
-            container.stderr.on('end', () => {
-                console.log('err end')
-            })
-
-            container.stderr.on('data', (d: Buffer) => {
-                const output = d.toString();
-
-                for (let i = output.length - 2; i >= 0; i--) {
-                    if (output[i] == "\n") {
-                        reject(new Error(output.slice(i + 1, output.length - 1)))
-                    }
-                }
-            });
 
             setTimeout(() => {
                 if (!container.killed) {
                     exec(`docker kill ${uuid}`);
-                    reject(new Error("Container timed out"));
                 }
             }, Number(CODE_TIMEOUT));
 
-            container.on('exit', () => {
+            container.on('spawn', () => {
                 resolve();
+            });
+
+            container.on('error', () => {
+                reject(new Error("Failed to sandbox code"));
             });
         });
     }
