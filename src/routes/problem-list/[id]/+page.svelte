@@ -1,6 +1,4 @@
 <script lang="ts">
-	import type { Verdict } from '$lib/types.js';
-
     const { data } = $props();
 
     const problem = data.problem;
@@ -10,6 +8,12 @@
 
     let verdict = $state<string|null>(null);
     let awaitingVerdict = $state(false);
+
+    let serverSolution = $state(problem.solution.solution);
+    let clientSolution = $state(problem.solution.solution);
+
+    let awaitingSave = $state(false);
+    let unsavedChanges = $derived(serverSolution !== clientSolution);
 
     function correctTextArea(e: KeyboardEvent) {
         const source = e.target as HTMLTextAreaElement;
@@ -41,6 +45,7 @@
             const insert = "\t".repeat(tabCount);
 
             source.value = source.value.substring(0, start) + "\n" + insert + source.value.substring(end);
+            source.selectionStart = source.selectionEnd = start + 1 + tabCount;
         }
     }
 
@@ -52,7 +57,7 @@
             method: "POST",
             body: JSON.stringify({
                 problemId: problem.id,
-                solution: problem.solution.solution
+                solution: clientSolution
             })
         });
 
@@ -60,12 +65,37 @@
 
         awaitingVerdict = false;
     }
+
+    async function saveSolution() {
+        if (!unsavedChanges) {
+            return;
+        }
+
+        awaitingSave = true;
+
+        const res = await fetch("/api/solutions/save", {
+            method: "POST",
+            body: JSON.stringify({
+                id: problem.solution.id,
+                solution: clientSolution
+            })
+        });
+
+        if (res.ok) {
+            serverSolution = clientSolution;
+        }
+
+        awaitingSave = false;
+    }
 </script>
 
 <div class="absolute top-0 left-0 w-full h-full flex gap-4 p-12">
     <div class="text-white w-xl flex flex-col gap-4">
         <div class="flex-1">
-            <h1 class="text-4xl py-4">{problem.id}. {problem.name}</h1>
+            <h1 class="text-4xl py-4">{problem.id}. {problem.name}
+                <a href="/problem-list" class="inline-block font-normal text-xl text-gray-500 underline-offset-4 underline">Go back</a>
+            </h1>
+
             <p>{problem.description}</p>
         </div>
 
@@ -95,14 +125,30 @@
             {/each}
         </div>
 
-        <div class="bg-gray-950 flex-1 rounded-xl rounded-tl-none shadow-xl border-2 border-gray-700 text-white">
+        <div class="relative bg-gray-950 flex-1 rounded-xl rounded-tl-none shadow-xl border-2 border-gray-700 text-white">
             {#if selectedTab === "Solution"}
             <textarea 
-                class="w-full h-full resize-none bg-transparent border-none rounded-xl rounded-tl-none transition-all outline-transparent p-4" 
-                bind:value={problem.solution.solution}
+                class="relative w-full h-full resize-none bg-transparent border-none rounded-xl rounded-tl-none transition-all outline-transparent p-4" 
+                bind:value={clientSolution}
                 onkeydown={correctTextArea}
                 placeholder="Write your code here..."
             ></textarea>
+
+            {#if unsavedChanges}
+            <div class="
+                absolute bottom-0 left-1/2 -translate-x-1/2 bg-blue-700 px-4 py-2 text-sm rounded-t-xl min-w-sm text-center
+                {awaitingSave? 'opacity-50' : ''} transition-opacity
+            ">
+                {#if !awaitingSave}
+                <button class="cursor-pointer" onclick={saveSolution}>
+                    You have unsaved changes. <span class="underline underline-offset-4">Click to save</span>
+                </button>
+                {:else}
+                Saving...
+                {/if}
+            </div>
+            {/if}
+
             {:else if selectedTab === "data.txt"}
             <pre class="p-4">{problem.data}</pre>
             {/if}

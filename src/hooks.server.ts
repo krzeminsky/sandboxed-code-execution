@@ -3,6 +3,7 @@ import { redirect } from '@sveltejs/kit';
 
 const protectedRoutes = [
     "/problem-list",
+    "/api/solutions"
 ]
 
 export const handle = async ({ event, resolve }) => {
