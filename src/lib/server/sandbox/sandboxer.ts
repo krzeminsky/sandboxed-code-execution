@@ -6,7 +6,6 @@ import { API_URL, CODE_MEMORY_LIMIT, CODE_TIMEOUT, CONTAINER_NAME } from "$env/s
 import { exec, spawn } from "child_process";
 import { UserDirectory } from "./user-directory";
 import type { Problem } from "$lib/server/database/schema-types";
-import { getCID } from "../cid";
 
 export class Sandboxer {
     #listener: ResultListener;
@@ -95,7 +94,17 @@ export class Sandboxer {
         return new Promise<void>((resolve, reject) => {          
             const container = spawn(
                 "docker",
-                `run --rm --read-only -v ${dir.mountDir}:/mnt -e PYTHONBUFFERED=1 -e UUID=${uuid} -e API_URL=${API_URL} --name ${uuid} ${CONTAINER_NAME}`.split(" ")
+                [
+                    "run", 
+                    "--rm",
+                    "--read-only",
+                    "-v", `${dir.mountDir}:/mnt`,
+                    "-e", "PYTHONBUFFERED=1",
+                    "-e", `UUID=${uuid}`,
+                    "-e", `API_URL=${API_URL}`,
+                    "--name", uuid,
+                    CONTAINER_NAME,
+                ]
             )
 
             setTimeout(() => {
