@@ -3,7 +3,7 @@ import { usersTable } from '$lib/server/database/schema.js';
 import { authSchema } from '$lib/server/validation/auth-schema.js'
 import { error, redirect, type Cookies } from '@sveltejs/kit';
 import { count, eq } from 'drizzle-orm';
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { getJwtCookie, setJwtCookie, signToken, verifyToken } from '$lib/server/utils/jwt.js';
 
 export const load = async ({ cookies }) => {

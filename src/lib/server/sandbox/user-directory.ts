@@ -1,25 +1,30 @@
+import { TMP_PATH } from "$env/static/private";
 import fs from "fs/promises";
+import path from "path";
 
 export class UserDirectory {
     #uuid: string;
     #initialized = false;
-    #tmpDir: string;
+    
+    #mountDir: string;
+    #localTmpDir: string;
 
     constructor(uuid: string) {
         this.#uuid = uuid;
-        this.#tmpDir = `./tmp/${uuid}`
+        this.#mountDir = path.join(TMP_PATH, uuid);
+        this.#localTmpDir = `./tmp/${uuid}`;
     }
 
-    get tmpDir() {
-        return this.#tmpDir;
+    get mountDir() {
+        return this.#mountDir;
     }
 
     static async create(uuid: string, data: string, solution: string) {
         const dir = new UserDirectory(uuid);
 
-        await fs.mkdir(dir.#tmpDir, { recursive: true });
-        await fs.writeFile(`${dir.#tmpDir}/data.txt`, data);
-        await fs.writeFile(`${dir.#tmpDir}/user_solution.py`, solution);
+        await fs.mkdir(dir.#localTmpDir, { recursive: true });
+        await fs.writeFile(`${dir.#localTmpDir}/data.txt`, data);
+        await fs.writeFile(`${dir.#localTmpDir}/user_solution.py`, solution);
 
         dir.#initialized = true;
 

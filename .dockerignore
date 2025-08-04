@@ -1,0 +1,14 @@
+**
+
+!src/
+!src/**
+
+!static/
+!static/**
+
+!.env.prod
+!package-lock.json
+!package.json
+!svelte.config.js
+!tsconfig.json
+!vite.config.ts
