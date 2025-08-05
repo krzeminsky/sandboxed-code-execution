@@ -93,6 +93,7 @@ Build the image that will be used to safely run user code:
 ```bash
 cd sandbox_unit
 docker build -t <your_image_name> ./
+cd ..
 ```
 
 ---
