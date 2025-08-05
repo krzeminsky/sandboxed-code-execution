@@ -2,10 +2,11 @@ import { db } from "$lib/server/database/drizzle";
 import { eq } from "drizzle-orm";
 import type { ResultListener } from "./result-listener";
 import { problemsTable } from "$lib/server/database/schema";
-import { API_URL, CODE_MEMORY_LIMIT, CODE_TIMEOUT, CONTAINER_NAME } from "$env/static/private";
+import { API_URL, CONTAINER_TIMEOUT, CONTAINER_MEMORY_LIMIT, CONTAINER_NAME, SANDBOX_NETWORK_NAME } from "$env/static/private";
 import { exec, spawn } from "child_process";
 import { UserDirectory } from "./user-directory";
 import type { Problem } from "$lib/server/database/schema-types";
+import { dev } from "$app/environment";
 
 export class Sandboxer {
     #listener: ResultListener;
@@ -91,17 +92,18 @@ export class Sandboxer {
     }
 
     #sandboxCode(uuid: string, dir: UserDirectory) {        
-        return new Promise<void>((resolve, reject) => {          
+        return new Promise<void>((resolve, reject) => {         
             const container = spawn(
                 "docker",
                 [
                     "run", 
                     "--rm",
                     "--read-only",
+                    `--memory=${CONTAINER_MEMORY_LIMIT}`,
                     "-v", `${dir.mountDir}:/mnt`,
-                    "-e", "PYTHONBUFFERED=1",
                     "-e", `UUID=${uuid}`,
                     "-e", `API_URL=${API_URL}`,
+                    `--network=${dev? "host" : SANDBOX_NETWORK_NAME}`,
                     "--name", uuid,
                     CONTAINER_NAME,
                 ]
@@ -111,7 +113,7 @@ export class Sandboxer {
                 if (!container.killed) {
                     exec(`docker kill ${uuid}`);
                 }
-            }, Number(CODE_TIMEOUT));
+            }, Number(CONTAINER_TIMEOUT));
 
             container.on('spawn', () => {
                 resolve();

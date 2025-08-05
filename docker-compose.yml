@@ -10,6 +10,8 @@ services:
       - 5431:5432
     volumes:
       - postgresdata:/var/lib/postgresql/data
+    networks:
+      - database
   web:
     container_name: web
     build:
@@ -21,7 +23,15 @@ services:
       - ./tmp:/app/tmp
     depends_on:
       - db
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    networks:
+      - sandbox
+      - database
 volumes:
   postgresdata:
+networks:
+  sandbox:
+    name: sandbox
+    external: true
+  database:
+    driver: bridge
+    internal: true

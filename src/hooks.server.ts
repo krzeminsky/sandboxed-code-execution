@@ -1,3 +1,4 @@
+import { DATABASE_URL } from '$env/static/private';
 import { getJwtCookie, verifyToken } from '$lib/server/utils/jwt';
 import { redirect } from '@sveltejs/kit';
 

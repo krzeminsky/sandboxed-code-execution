@@ -13,10 +13,7 @@ export const POST = async ({ request }) => {
 
     try {
         listener.addResult(uuid, content);
-    } catch { 
-        // DEV ONLY DELETE LATER
-        console.log(`Container with uuid: ${uuid} tried to resolve awaited result but failed`)
-    }
+    } catch { }
 
     return new Response();
 }
